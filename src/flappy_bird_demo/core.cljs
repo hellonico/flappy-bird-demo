@@ -1,10 +1,13 @@
 (ns flappy-bird-demo.core
   (:require
-   [sablono.core :as sab :include-macros true]
+   [reagent.core :as reagent :refer [atom]]
+   [reagent.interop :as i :refer-macros [.' .!]]
    [figwheel.client :as fw]
    [cljs.core.async :refer [<! chan sliding-buffer put! close! timeout]])
   (:require-macros
    [cljs.core.async.macros :refer [go-loop go]]))
+
+;[sablono.core :as sab :include-macros true]
 
 (enable-console-print!)
 
@@ -12,6 +15,7 @@
 
 (defn translate [start-pos vel time]
   (floor (+ start-pos (* time vel))))
+
 
 (def horiz-vel -0.15)
 (def gravity 0.05)
@@ -178,7 +182,7 @@
 (defn main-template [{:keys [score cur-time jump-count
                              timer-running border-pos
                              flappy-y pillar-list]}]
-  (sab/html [:div.board { :onMouseDown (fn [e]
+  [:div.board { :onMouseDown (fn [e]
                                          (swap! flap-state jump)
                                          (.preventDefault e))}
              [:h1.score score]
@@ -188,11 +192,11 @@
                [:span])
              [:div (map pillar pillar-list)]
              [:div.flappy {:style {:top (px flappy-y)}}]
-             [:div.scrolling-border {:style { :background-position-x (px border-pos)}}]]))
+             [:div.scrolling-border {:style { :background-position-x (px border-pos)}}]])
 
 (let [node (.getElementById js/document "board-area")]
   (defn renderer [full-state]
-    (.renderComponent js/React (main-template full-state) node)))
+    (reagent/render-component (main-template full-state) node)))
 
 (add-watch flap-state :renderer (fn [_ _ _ n]
                                   (renderer (world n))))
